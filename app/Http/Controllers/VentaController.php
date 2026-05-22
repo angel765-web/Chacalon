@@ -13,16 +13,31 @@ use Illuminate\Http\Request;
 class VentaController extends Controller
 {
     // ================= INDEX =================
-    public function index()
+    public function index(Request $request)
     {
-        $ventas = Venta::with(['detalles', 'servicios'])->get();
-        return view('ventas.index', compact('ventas'));
+        $fechaFiltro = $request->get('fecha_busqueda', now()->toDateString());
+
+        $ventas = Venta::with(['detalles.producto', 'servicios.categoria'])
+            ->whereDate('fecha', $fechaFiltro)
+            ->latest('id_venta')
+            ->get();
+
+        return view('ventas.index', compact('ventas', 'fechaFiltro'));
     }
 
     // ================= CREATE =================
     public function create()
     {
-        $productos = CrearProducto::with('producto')->get();
+        // Traemos las relaciones correctas para evitar errores de carga en la vista
+        $productos = CrearProducto::with(['producto', 'marca', 'tipoProducto'])
+            ->select('crear_productos.*')
+            ->selectSub(function($query) {
+                $query->from('inventarios')
+                    ->selectRaw('COALESCE(SUM(cantidad), 0)')
+                    ->whereColumn('inventarios.id_crea_producto', 'crear_productos.id_crea_producto');
+            }, 'stock_actual')
+            ->get();
+
         $categorias = CategoriaServicio::all();
 
         return view('ventas.create', compact('productos', 'categorias'));
@@ -44,7 +59,7 @@ class VentaController extends Controller
             foreach ($request->productos as $item) {
 
                 $idProducto = $item['id_crea_producto'] ?? null;
-                $cantidad = $item['cantidad'] ?? 0;
+                $cantidad = (int)($item['cantidad'] ?? 0);
 
                 if (!$idProducto || $cantidad <= 0) {
                     continue;
@@ -56,6 +71,16 @@ class VentaController extends Controller
                     continue;
                 }
 
+                // RESPALDO DE SEGURIDAD EN SERVIDOR: Validamos stock real antes de guardar
+                $stockDisponible = Inventario::where('id_crea_producto', $idProducto)->sum('cantidad');
+                if ($cantidad > $stockDisponible) {
+                    // Si por alguna razón se salta el JS, cancelamos la transacción y avisamos
+                    $venta->delete();
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['stock' => "El producto {$producto->producto->nombre} no tiene suficientes existencias."]);
+                }
+
                 $subtotal = $producto->precio_venta * $cantidad;
                 $total += $subtotal;
 
@@ -65,13 +90,13 @@ class VentaController extends Controller
                     'cantidad' => $cantidad
                 ]);
 
-                //  DESCONTAR INVENTARIO
-                $inventario = Inventario::where('id_crea_producto', $idProducto)->first();
-
-                if ($inventario) {
-                    $inventario->cantidad -= $cantidad;
-                    $inventario->save();
-                }
+                // CORRECCIÓN: Creamos un registro de salida (CANTIDAD NEGATIVA) en tu Kardex/Inventario
+                Inventario::create([
+                    'id_crea_producto' => $idProducto,
+                    'precio_compra'    => 0, // Las salidas no tienen costo de compra directo aquí
+                    'cantidad'         => -$cantidad, // El signo de menos (-) resta del stock global al sumar
+                    'fecha'            => now()->toDateString()
+                ]);
             }
         }
 
@@ -81,8 +106,8 @@ class VentaController extends Controller
             foreach ($request->servicios as $item) {
 
                 $idServicio = $item['id_categoria_servicio'] ?? null;
-                $monto = $item['monto'] ?? 0;
-                $comision = $item['comision'] ?? 0;
+                $monto = (float)($item['monto'] ?? 0);
+                $comision = (float)($item['comision'] ?? 0);
 
                 if (!$idServicio || $monto <= 0) {
                     continue;
@@ -95,7 +120,7 @@ class VentaController extends Controller
                     'comision' => $comision
                 ]);
 
-                $total += $monto;
+                $total += ($monto + $comision);
             }
         }
 

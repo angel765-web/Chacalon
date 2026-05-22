@@ -60,6 +60,8 @@
                                     <option value="{{ $p->id_crea_producto }}"
                                         {{ old('id_crea_producto') == $p->id_crea_producto ? 'selected' : '' }}>
                                         {{ $p->producto->nombre ?? 'Sin nombre' }}
+                                        {{ $p->tipoproducto->nombre ?? 'Sin nombre'}}
+                                        {{ $p->marca->nombre ?? 'Sin nombre'}}
                                     </option>
                                 @endforeach
                             </select>
