@@ -15,7 +15,6 @@
             background: #f4f6f9;
         }
 
-        /* SIDEBAR */
         .sidebar {
             min-height: 100vh;
             background: #1e1e2f;
@@ -55,12 +54,10 @@
             font-weight: bold;
         }
 
-        /* MAIN */
         .main-content {
             padding: 25px;
         }
 
-        /* TOP BAR */
         .topbar {
             background: white;
             padding: 10px 20px;
@@ -82,22 +79,15 @@
             <h4 class="text-center mb-4">📚 Papelería May</h4>
 
             <div class="section-title">Operaciones</div>
-            <a href="{{ route('home') }}">
-                <i class="bi bi-house"></i> Home
-            </a>
-
+            <a href="{{ route('home') }}"><i class="bi bi-house"></i> Home</a>
             <a href="/ventas"><i class="bi bi-cash-coin"></i> Punto de Venta</a>
 
             <div class="section-title">Almacén</div>
-
             <a href="/inventarios"><i class="bi bi-box-seam"></i> Inventario</a>
             <a href="/crear_productos"><i class="bi bi-plus-square"></i> Productos</a>
 
             <div class="section-title">Configuración</div>
-
-            <a href="{{ route('productos.index') }}">
-                <i class="bi bi-list"></i> Catálogo Base
-            </a>
+            <a href="{{ route('productos.index') }}"><i class="bi bi-list"></i> Catálogo Base</a>
             <a href="/marcas"><i class="bi bi-tag"></i> Marcas</a>
             <a href="/tipos"><i class="bi bi-pencil"></i> Tipos</a>
             <a href="/calidades"><i class="bi bi-star"></i> Calidades</a>
@@ -121,7 +111,46 @@
     </div>
 </div>
 
+<!-- ===================== SCRIPTS BASE ===================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 🔥 SWEETALERT GLOBAL -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- 🔥 ALERTAS AUTOMÁTICAS -->
+<script>
+
+    // ✔ ÉXITO
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Correcto',
+            text: "{{ session('success') }}"
+        });
+    @endif
+
+    // ❌ ERROR GENERAL
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: "{{ session('error') }}"
+        });
+    @endif
+
+    // ⚠️ VALIDACIONES (opcional pero útil)
+    @if($errors->any())
+        Swal.fire({
+            icon: 'warning',
+            title: 'Revisa los datos',
+            text: 'Hay campos con errores en el formulario'
+        });
+    @endif
+
+</script>
+
+<!-- Scripts específicos de cada vista -->
 @yield('scripts')
 
 </body>

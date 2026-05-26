@@ -20,9 +20,24 @@ class TipoProductoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['nombre' => 'required|max:100']);
-        TipoProducto::create($request->all());
-        return redirect()->route('tipos.index')->with('success', 'Tipo de producto registrado.');
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ]
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
+        TipoProducto::create([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('tipos.index')
+            ->with('success', 'Tipo de producto registrado.');
     }
 
     public function edit($id)
@@ -33,16 +48,34 @@ class TipoProductoController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate(['nombre' => 'required|max:100']);
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ]
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
         $tipo = TipoProducto::findOrFail($id);
-        $tipo->update($request->all());
-        return redirect()->route('tipos.index')->with('success', 'Tipo actualizado correctamente.');
+
+        $tipo->update([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('tipos.index')
+            ->with('success', 'Tipo actualizado correctamente.');
     }
 
     public function destroy($id)
     {
         $tipo = TipoProducto::findOrFail($id);
         $tipo->delete();
-        return redirect()->route('tipos.index')->with('success', 'Tipo eliminado.');
+
+        return redirect()->route('tipos.index')
+            ->with('success', 'Tipo eliminado.');
     }
 }

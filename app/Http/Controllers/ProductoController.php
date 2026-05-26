@@ -20,9 +20,26 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['nombre' => 'required|max:150']);
-        Producto::create($request->all());
-        return redirect()->route('productos.index')->with('success', 'Producto base registrado.');
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:150',
+
+                // 🔥 solo letras y espacios (sin números ni símbolos)
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ],
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
+        Producto::create([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto base registrado.');
     }
 
     public function edit($id)
@@ -33,16 +50,37 @@ class ProductoController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate(['nombre' => 'required|max:150']);
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:150',
+
+                // 🔥 misma validación
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ],
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
         $producto = Producto::findOrFail($id);
-        $producto->update($request->all());
-        return redirect()->route('productos.index')->with('success', 'Producto actualizado.');
+
+        $producto->update([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto actualizado.');
     }
 
     public function destroy($id)
     {
         $producto = Producto::findOrFail($id);
+
         $producto->delete();
-        return redirect()->route('productos.index')->with('success', 'Producto eliminado.');
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto eliminado.');
     }
 }

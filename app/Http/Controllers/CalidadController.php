@@ -20,9 +20,24 @@ class CalidadController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['nombre' => 'required|max:100']);
-        Calidad::create($request->all());
-        return redirect()->route('calidades.index')->with('success', 'Calidad agregada correctamente.');
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ]
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
+        Calidad::create([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('calidades.index')
+            ->with('success', 'Calidad agregada correctamente.');
     }
 
     public function edit($id)
@@ -33,16 +48,34 @@ class CalidadController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate(['nombre' => 'required|max:100']);
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ]
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
         $calidad = Calidad::findOrFail($id);
-        $calidad->update($request->all());
-        return redirect()->route('calidades.index')->with('success', 'Calidad actualizada.');
+
+        $calidad->update([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('calidades.index')
+            ->with('success', 'Calidad actualizada.');
     }
 
     public function destroy($id)
     {
         $calidad = Calidad::findOrFail($id);
         $calidad->delete();
-        return redirect()->route('calidades.index')->with('success', 'Calidad eliminada.');
+
+        return redirect()->route('calidades.index')
+            ->with('success', 'Calidad eliminada.');
     }
 }

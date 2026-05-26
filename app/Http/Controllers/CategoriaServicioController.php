@@ -20,9 +20,24 @@ class CategoriaServicioController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['nombre' => 'required|max:100']);
-        CategoriaServicio::create($request->all());
-        return redirect()->route('catalogo_servicios.index')->with('success', 'Categoría de servicio guardada.');
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ]
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
+        CategoriaServicio::create([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('catalogo_servicios.index')
+            ->with('success', 'Categoría de servicio guardada.');
     }
 
     public function edit($id)
@@ -33,16 +48,34 @@ class CategoriaServicioController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate(['nombre' => 'required|max:100']);
+        $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'
+            ]
+        ], [
+            'nombre.required' => 'El nombre es obligatorio',
+            'nombre.regex' => 'Solo se permiten letras, no números ni símbolos',
+        ]);
+
         $categoria = CategoriaServicio::findOrFail($id);
-        $categoria->update($request->all());
-        return redirect()->route('catalogo_servicios.index')->with('success', 'Categoría actualizada.');
+
+        $categoria->update([
+            'nombre' => $request->nombre
+        ]);
+
+        return redirect()->route('catalogo_servicios.index')
+            ->with('success', 'Categoría actualizada.');
     }
 
     public function destroy($id)
     {
         $categoria = CategoriaServicio::findOrFail($id);
         $categoria->delete();
-        return redirect()->route('catalogo_servicios.index')->with('success', 'Categoría eliminada.');
+
+        return redirect()->route('catalogo_servicios.index')
+            ->with('success', 'Categoría eliminada.');
     }
 }

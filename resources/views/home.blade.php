@@ -2,145 +2,194 @@
 
 @section('content')
 
-<div class="container-fluid">
+<div class="container-fluid py-4">
 
-    <!-- HEADER -->
-    <div class="p-5 mb-4 text-white rounded-4 shadow"
+    <!-- =====================================================
+        HEADER
+    ====================================================== -->
+    <div class="p-4 p-md-5 mb-4 text-white rounded-4 shadow"
          style="background: linear-gradient(135deg,#1e3a8a,#2563eb);">
 
-        <h1 class="fw-bold">📚 Papeleria Mayliz</h1>
-        <p class="mb-0 opacity-75">
-            Resumen de ventas, inventario y servicios
-        </p>
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+            <div>
+                <h1 class="fw-bold mb-1">📚 Papelería Mayliz</h1>
+                <p class="mb-0 opacity-75">Panel operativo de ventas e inventario</p>
+            </div>
+
+            <div class="text-end mt-3 mt-md-0">
+                <a href="{{ route('ventas.create') }}" class="btn btn-light fw-bold">
+                    ➕ Nueva Venta
+                </a>
+            </div>
+
+        </div>
 
     </div>
 
-    <!-- CARDS PRINCIPALES -->
+    <!-- =====================================================
+        KPI SIMPLES (NO CARDS, SOLO INFO RÁPIDA)
+    ====================================================== -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-lg-3">
+            <div class="p-3 bg-white rounded-4 shadow-sm border">
+                <div class="text-muted small">Ventas hoy</div>
+                <div class="fs-4 fw-bold text-primary">{{ $ventasHoy }}</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="p-3 bg-white rounded-4 shadow-sm border">
+                <div class="text-muted small">Ingresos hoy</div>
+                <div class="fs-4 fw-bold text-success">
+                    ${{ number_format($totalHoy, 2) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="p-3 bg-white rounded-4 shadow-sm border">
+                <div class="text-muted small">Inventario</div>
+                <div class="fs-4 fw-bold text-dark">{{ $inventarioTotal }}</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="p-3 bg-white rounded-4 shadow-sm border">
+                <div class="text-muted small">Stock crítico</div>
+                <div class="fs-4 fw-bold text-danger">{{ $stockBajo }}</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- =====================================================
+        CUERPO PRINCIPAL
+    ====================================================== -->
     <div class="row g-4">
 
-        <div class="col-md-3">
-            <div class="card shadow border-0 rounded-4 text-white bg-primary">
-                <div class="card-body text-center">
-                    <h6>Ventas Hoy</h6>
-                    <h2 class="fw-bold">{{ $ventasHoy }}</h2>
+        <!-- ================= ACTIVIDAD ================= -->
+        <div class="col-lg-8">
+
+            <div class="bg-white p-4 rounded-4 shadow-sm border">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">⚡ Actividad reciente</h5>
                 </div>
-            </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card shadow border-0 rounded-4 text-white bg-success">
-                <div class="card-body text-center">
-                    <h6>Total Hoy</h6>
-                    <h2 class="fw-bold">${{ $totalHoy }}</h2>
-                </div>
-            </div>
-        </div>
+                <div style="max-height: 500px; overflow-y: auto;">
 
-        <div class="col-md-3">
-            <div class="card shadow border-0 rounded-4 text-dark bg-warning">
-                <div class="card-body text-center">
-                    <h6>Inventario Total</h6>
-                    <h2 class="fw-bold">{{ $inventarioTotal }}</h2>
-                </div>
-            </div>
-        </div>
+                    @forelse($actividad as $item)
 
-        <div class="col-md-3">
-            <div class="card shadow border-0 rounded-4 text-white bg-danger">
-                <div class="card-body text-center">
-                    <h6>Stock Bajo</h6>
-                    <h2 class="fw-bold">{{ $stockBajo }}</h2>
-                </div>
-            </div>
-        </div>
+                        <div class="border-bottom py-3">
 
-    </div>
+                            <!-- ENCABEZADO -->
+                            <div class="d-flex justify-content-between align-items-center mb-1">
 
-    <!-- ACTIVIDAD SIMPLE (SIN TABLA) -->
-    <div class="mt-5">
+                                <div>
+                                    @if($item['tipo'] === 'venta')
+                                        <span class="badge bg-primary">VENTA</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark">SERVICIO</span>
+                                    @endif
+                                </div>
 
-        <h4 class="mb-3">⚡ Actividad reciente</h4>
+                                <small class="text-muted">
+                                    {{ $item['fecha'] ?? '-' }}
+                                </small>
 
-        <div class="row g-3">
+                            </div>
 
-            @forelse($actividad as $item)
+                            <!-- DETALLE -->
+                            <div class="small">
 
-                <div class="col-md-4">
+                                @if($item['tipo'] === 'venta')
 
-                    <div class="card border-0 shadow-sm rounded-4 p-3">
-
-                        <!-- TIPO -->
-                        <div class="mb-2">
-
-                            @if($item['tipo'] === 'venta')
-                                <span class="badge bg-primary">Venta</span>
-                            @else
-                                <span class="badge bg-warning text-dark">Servicio</span>
-                            @endif
-
-                        </div>
-
-                        <!-- DETALLE -->
-                        <div class="mb-2">
-
-                            @if($item['tipo'] === 'venta')
-
-                                @if(!empty($item['detalles']))
-                                    @foreach($item['detalles'] as $detalle)
-
-                                        <div class="small text-dark">
-
+                                    @forelse($item['detalles'] ?? [] as $detalle)
+                                        <div>
                                             • {{ $detalle->producto->nombre ?? 'Producto' }}
-
                                             @if(!empty($detalle->producto->marca->nombre))
-                                                ({{ $detalle->producto->marca->nombre }})
+                                                <span class="text-muted">
+                                                    ({{ $detalle->producto->marca->nombre }})
+                                                </span>
                                             @endif
-
                                         </div>
+                                    @empty
+                                        <span class="text-muted">Sin detalles</span>
+                                    @endforelse
 
-                                    @endforeach
                                 @else
-                                    <span class="text-muted small">Sin detalles</span>
+
+                                    <div class="fw-semibold">
+                                        {{ $item['categoria']->nombre ?? 'Servicio' }}
+                                    </div>
+
+                                    <div class="text-muted">
+                                        Comisión: ${{ number_format($item['servicio']->comision ?? 0, 2) }}
+                                    </div>
+
                                 @endif
 
-                            @else
+                            </div>
 
-                                <div class="small text-dark">
-
-                                    {{ $item['categoria']->nombre ?? $item['nombre'] ?? 'Servicio' }}
-
-                                </div>
-
-                                <div class="small text-muted">
-
-                                    ${{ $item['servicio']->precio ?? $item['total'] ?? 0 }}
-
-                                </div>
-
-                            @endif
+                            <!-- TOTAL -->
+                            <div class="text-end mt-2">
+                                <span class="fw-bold text-success">
+                                    ${{ number_format($item['total'] ?? 0, 2) }}
+                                </span>
+                            </div>
 
                         </div>
 
-                        <!-- FECHA + TOTAL -->
-                        <div class="d-flex justify-content-between mt-2 small text-muted">
+                    @empty
 
-                            <span>📅 {{ $item['fecha'] ?? '-' }}</span>
-
-                            <span class="fw-bold text-success">
-                                ${{ $item['total'] ?? 0 }}
-                            </span>
-
+                        <div class="text-center text-muted py-4">
+                            No hay actividad reciente
                         </div>
 
-                    </div>
+                    @endforelse
 
                 </div>
 
-            @empty
+            </div>
 
-                <p class="text-muted">No hay actividad reciente</p>
+        </div>
 
-            @endforelse
+        <!-- ================= ACCIONES RÁPIDAS ================= -->
+        <div class="col-lg-4">
+
+            <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
+
+                <h5 class="mb-3">⚡ Acciones rápidas</h5>
+
+                <a href="{{ route('ventas.create') }}" class="btn btn-primary w-100 mb-2">
+                    ➕ Nueva Venta
+                </a>
+
+                <a href="/inventarios" class="btn btn-outline-dark w-100 mb-2">
+                    📦 Inventario
+                </a>
+
+                <a href="/crear_productos" class="btn btn-outline-success w-100 mb-2">
+                    🧾 Productos
+                </a>
+
+                <a href="/catalogo_servicios" class="btn btn-outline-warning w-100">
+                    🛠 Servicios
+                </a>
+
+            </div>
+
+            <div class="bg-white p-4 rounded-4 shadow-sm border">
+
+                <h6 class="mb-3">⚠️ Alertas</h6>
+
+                <div class="text-danger small">
+                    • {{ $stockBajo }} productos con stock bajo
+                </div>
+
+            </div>
 
         </div>
 
